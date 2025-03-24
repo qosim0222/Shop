@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  firstname String
+  lastname  String
+  image     String[]
+  phone     String     @unique
+  password  String
+  email     String     @unique
+  regionId  String?
+  lastOnline    DateTime    @default(now())
+  region    Region?    @relation(fields: [regionId], references: [id])
+  status    UserStatus @default(INACTIVE)
+  role      Role       @default(USER)
+  Like      Like[]
+  Order     Order[]
+  View      View[]
+  Sessions  Sessions[]
+  Product   Product[]
+  Comment   Comment[]
+}
+
+model Sessions {
+  id     String @id @default(uuid())
+  ip     String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete:Cascade)
+}
+
+model Region {
+  id   String @id @default(uuid())
+  name String
+  User User[]
+}
+
+model View {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  date      DateTime @default(now())
+}
+
+model Color {
+  id        String      @id @default(uuid())
+  name      String
+  ColorItem ColorItem[]
+}
+
+model ColorItem {
+  id        String  @id @default(uuid())
+  colorId   String
+  color     Color   @relation(fields: [colorId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Category {
+  id      String    @id @default(uuid())
+  name    String
+  type    Type
+  Product Product[]
+}
+
+model Product {
+  id          String        @id @default(uuid())
+  image       String[]
+  name        String
+  price       Float
+  ceiling     Float         @default(0)
+  count       Int
+  description String
+  location    String
+  condition   Condition
+  bargain     Boolean       @default(false)
+  trade_type  TradeType     @default(PAID)
+  status      StatusProduct @default(PENDING)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  Like        Like[]
+  Order       Order[]
+  ColorItem   ColorItem[]
+  View        View[]
+  Comment     Comment[]
+}
+
+model Like {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  count     Int
+  summa     Int
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  stars     Float
+  date      DateTime @default(now())
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  productId String
+  Product   Product  @relation(fields: [productId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  USER
+}
+
+enum Type {
+  PHONE
+  ELECTRONICS
+  LAPTOP
+  ACCESSORIES
+}
+
+enum StatusProduct {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TradeType {
+  FREE
+  PAID
+  BARTER
+}
+
+enum Condition {
+  NEW
+  USED
+}
