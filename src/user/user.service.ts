@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { CreateUserDto, loginUserDto,  SendOtpDto,  SessionDto } from './dto/create-user.dto';
+import { CreateUserDto, loginUserDto, SendOtpDto, SessionDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -12,10 +12,10 @@ import { MailService } from 'src/email/mail.service';
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
-     private jwtService: JwtService,
+    private jwtService: JwtService,
     private mailService: MailService,
 
-    ) {}
+  ) { }
 
   async findUser(email: string) {
     try {
@@ -63,7 +63,7 @@ export class UserService {
         throw new BadRequestException('Password or email is wrong');
       }
 
-      let session = await this.prisma.sessions .findFirst({
+      let session = await this.prisma.sessions.findFirst({
         where: { ip: loginUserDto.ip, userId: user.id },
       });
 
@@ -83,7 +83,7 @@ export class UserService {
 
   async sendOTP(data: SendOtpDto) {
     try {
-      let user = await this.prisma.user.findFirst({
+      let user = await this.prisma.user.findUnique({
         where: { email: data.email },
       });
 
@@ -103,7 +103,7 @@ export class UserService {
       return new BadRequestException(error.message);
     }
   }
-  
+
   async sessions(request: Request) {
     try {
       let id = request['user'].id;
@@ -137,27 +137,27 @@ export class UserService {
   async me(request: Request, sesDto: SessionDto) {
     try {
       let id = request['user'].id;
-  
+
       let session = await this.prisma.sessions.findFirst({
-        where: { ip: sesDto.ip, userId: id }, 
+        where: { ip: sesDto.ip, userId: id },
       });
-  
+
       if (!session) throw new UnauthorizedException();
-  
+
       let user = await this.prisma.user.findFirst({ where: { id } });
-  
+
       return { user };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
-  
+
 
 
 
   async findAll() {
     try {
-      return await this.prisma.user.findMany();
+      return await this.prisma.user.findMany({ include: { region: true } });
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -165,7 +165,10 @@ export class UserService {
 
   async findOne(id: string) {
     try {
-      let data = await this.prisma.user.findUnique({ where: { id } });
+      let data = await this.prisma.user.findUnique({
+        where: { id },
+        include: { region: true }
+      });
       if (!data) {
         throw new NotFoundException('User not found');
       }

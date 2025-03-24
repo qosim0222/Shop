@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateLikeDto } from './dto/create-like.dto';
 import { UpdateLikeDto } from './dto/update-like.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
 
 @Injectable()
 export class LikeService {
-  create(createLikeDto: CreateLikeDto) {
-    return 'This action adds a new like';
+  constructor(private prisma: PrismaService) {}
+
+  async create(createLikeDto: CreateLikeDto, req: Request) {
+    let user = req['user'];
+    try {
+      let data = await this.prisma.like.create({
+        data: { ...createLikeDto, userId: user.id },
+      });
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  findAll() {
-    return `This action returns all like`;
-  }
+  async remove(id: string) {
+    try {
+      let data = await this.prisma.like.delete({ where: { id } });
 
-  findOne(id: number) {
-    return `This action returns a #${id} like`;
-  }
-
-  update(id: number, updateLikeDto: UpdateLikeDto) {
-    return `This action updates a #${id} like`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} like`;
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 }
+

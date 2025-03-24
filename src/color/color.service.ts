@@ -27,7 +27,9 @@ export class ColorService {
 
   async findOne(id: string) {
     try {
-      let data = await this.prisma.color.findFirst({ where: { id } });
+      let data = await this.prisma.color.findFirst({ where: { id },
+      include:{ColorItem:true}
+     });
       if (!data) {
         throw new NotFoundException('Color not found');
       }

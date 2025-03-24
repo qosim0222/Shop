@@ -1,26 +1,104 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateRegionDto } from './dto/create-region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RegionService {
-  create(createRegionDto: CreateRegionDto) {
-    return 'This action adds a new region';
+  constructor(private prisma: PrismaService) { }
+
+  async create(createRegionDto: CreateRegionDto) {
+    try {
+      let region = await this.prisma.region.findFirst({
+        where: { name: createRegionDto.name },
+      });
+
+      if (region) {
+        return new ConflictException('Region already exists');
+      }
+
+      let data = await this.prisma.region.create({
+        data: createRegionDto,
+      });
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  findAll() {
-    return `This action returns all region`;
+  async findAll() {
+    try {
+      let data = await this.prisma.region.findMany({ include: { User: true } });
+
+      if (!data.length) {
+        return new NotFoundException('No regions found');
+      }
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} region`;
+  async findOne(id: string) {
+    try {
+      let data = await this.prisma.region.findUnique({
+        where: { id },
+        include: { User: true },
+      });
+
+      if (!data) {
+        return new NotFoundException('No region found');
+      }
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  update(id: number, updateRegionDto: UpdateRegionDto) {
-    return `This action updates a #${id} region`;
+  async update(id: string, updateRegionDto: UpdateRegionDto) {
+    try {
+      let region = await this.prisma.region.findFirst({
+        where: { name: updateRegionDto.name },
+      });
+
+      if (region) {
+        return new ConflictException('Region already exists');
+      }
+
+      let data = await this.prisma.region.update({
+        where: { id },
+        data: updateRegionDto,
+      });
+
+      if (!data) {
+        return new NotFoundException('No region found');
+      }
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} region`;
+  async remove(id: string) {
+    try {
+      let data = await this.prisma.region.delete({ where: { id } });
+
+      if (!data) {
+        return new NotFoundException('No region found');
+      }
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 }
