@@ -11,7 +11,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
 
   const config = new DocumentBuilder()
-  .setTitle('product example')
+  .setTitle('Shop example')
   .setDescription('The cats API description')
   .setVersion('1.0')
   .addSecurityRequirements("bearer",["bearer"])
@@ -21,9 +21,9 @@ async function bootstrap() {
 SwaggerModule.setup('api', app, documentFactory);
 
 
-  await app.listen(process.env.PORT ?? 3000, ()=>{
+  await app.listen(process.env.PORT ?? 3008, ()=>{
     console.log("server ishlamoqda");
-    
+
   });
 }
 bootstrap();

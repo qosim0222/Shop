@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Role } from "@prisma/client";
-import { IsEmail, IsEmpty, IsEnum, IsInt, IsIP, IsNotEmpty, IsOptional, IsPhoneNumber, IsString } from "class-validator";
+import { Role, UserStatus } from "@prisma/client";
+import { IsArray, IsEmail, IsEmpty, IsEnum, IsInt, IsIP, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsPositive, IsString } from "class-validator";
 
 
 export class CreateUserDto {
@@ -24,13 +24,13 @@ export class CreateUserDto {
     @IsPhoneNumber()
     phone: string;
 
-    @ApiProperty({ example: "StrongPass123!", description: "Foydalanuvchining paroli" })
+    @ApiProperty({ example: "1234", description: "Foydalanuvchining paroli" })
     @IsNotEmpty()
     password: string;
 
-    @ApiProperty({ example: "https://example.com/image.jpg", description: "Profil rasmi URL manzili" })
+    @ApiProperty({ example: ["image"], description: "Profil rasmi URL manzili" })
     @IsOptional()
-    @IsString()
+    @IsArray()
     image?: string[];
 
     @ApiProperty({ example: Role.USER, description: "Foydalanuvchi roli" })
@@ -40,13 +40,18 @@ export class CreateUserDto {
 
     @ApiProperty({ example: 1, description: "Hudud ID raqami" })
     @IsOptional()
-    @IsString()
-    regionId?: string;
+    @IsNumber()
+    @IsPositive()
+    region_id?: number;
 
     @ApiProperty({ example: "Toshkent", description: "Foydalanuvchining yashash joyi" })
     @IsOptional()
     @IsString()
     location?: string;
+
+    @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
+    @IsEnum(UserStatus)
+    status: UserStatus;
 }
 
 

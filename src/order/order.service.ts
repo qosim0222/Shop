@@ -1,26 +1,65 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ChatGateway } from 'src/chat/chat.gateway';
+import { Request } from 'express';
 
 @Injectable()
 export class OrderService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    private prisma: PrismaService,
+    private chat: ChatGateway,
+  ) {}
+
+  async create(createOrderDto: CreateOrderDto, req: Request) {
+    let user = req['user'];
+    let { productId, count } = createOrderDto;
+    try {
+      let product = await this.prisma.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        return new NotFoundException('Not found product');
+      }
+
+      if (product.count < count) {
+        return new BadRequestException('Not enough products');
+      }
+      let data = await this.prisma.order.create({
+        data: {
+          ...createOrderDto,
+        userId: user.id,
+         
+        },
+      });
+      await this.prisma.product.update({
+        where: { id: productId, count: { gte: count } },
+        data: { count: { decrement: count } },
+      });
+
+      this.chat.server.emit('newOrder', {
+        message: 'order yaratildi',
+        order: data,
+      });
+
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 
-  findAll() {
-    return `This action returns all order`;
-  }
+  async remove(id: string) {
+    try {
+      let order = await this.prisma.order.findUnique({ where: { id } });
+      if (!order) {
+        return new NotFoundException('Not found order');
+      }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+      let data = await this.prisma.order.delete({where:{id}});
+      return { data };
+    } catch (error) {
+      return new BadRequestException(error.message);
+    }
   }
 }

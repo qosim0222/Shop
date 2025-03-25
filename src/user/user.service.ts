@@ -26,13 +26,20 @@ export class UserService {
   }
 
   async register(createUserDto: CreateUserDto) {
-    let { email, password } = createUserDto;
+    let { email, password, region_id } = createUserDto;
     try {
       let user = await this.findUser(email);
       if (user) {
         throw new ConflictException('User already exists');
       }
 
+      let region = await this.prisma.region.findUnique({
+        where: { id:region_id },
+      });
+      if (!region) {
+        throw new NotFoundException('Not found region');
+      }
+      
       let hash = bcrypt.hashSync(password, 10);
       let newUser = await this.prisma.user.create({
         data: { ...createUserDto, password: hash },

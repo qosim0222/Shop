@@ -34,23 +34,23 @@ export class RegionService {
 
   async findAll() {
     try {
-      let data = await this.prisma.region.findMany({ include: { User: true } });
+      let data = await this.prisma.region.findMany({ include: { users: true} });
 
-      if (!data.length) {
-        return new NotFoundException('No regions found');
-      }
+      // if (!data.length) {
+      //   throw new NotFoundException(' regions empty ');
+      // }
 
       return { data };
     } catch (error) {
-      return new BadRequestException(error.message);
+      throw new BadRequestException(error.message);
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     try {
       let data = await this.prisma.region.findUnique({
         where: { id },
-        include: { User: true },
+        include: { users: true },
       });
 
       if (!data) {
@@ -63,7 +63,7 @@ export class RegionService {
     }
   }
 
-  async update(id: string, updateRegionDto: UpdateRegionDto) {
+  async update(id: number, updateRegionDto: UpdateRegionDto) {
     try {
       let region = await this.prisma.region.findFirst({
         where: { name: updateRegionDto.name },
@@ -88,7 +88,7 @@ export class RegionService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: number) {
     try {
       let data = await this.prisma.region.delete({ where: { id } });
 

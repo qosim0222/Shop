@@ -13,6 +13,7 @@ import { LikeModule } from './like/like.module';
 import { RegionModule } from './region/region.module';
 import { ProductModule } from './product/product.module';
 import { ColorModule } from './color/color.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [UploadModule,
@@ -28,7 +29,8 @@ import { ColorModule } from './color/color.module';
     LikeModule,
     RegionModule,
     ProductModule,
-    ColorModule
+    ColorModule,
+    ChatModule
   ],
   controllers: [AppController],
   providers: [AppService],

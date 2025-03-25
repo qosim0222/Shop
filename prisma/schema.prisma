@@ -13,38 +13,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Region {
+  id    Int    @id @default(autoincrement())
+  name  String
+  users User[]
+}
+
 model User {
-  id        String     @id @default(uuid())
-  firstname String
-  lastname  String
-  image     String[] 
-  phone     String     @unique
-  password  String
-  email     String     @unique
-  regionId  String?
-  lastOnline    DateTime    @default(now())
-  region    Region?    @relation(fields: [regionId], references: [id])
-  status    UserStatus @default(INACTIVE)
-  role      Role       @default(USER)
-  Like      Like[]
-  Order     Order[]
-  View      View[]
-  Sessions  Sessions[]
-  Product   Product[]
-  Comment   Comment[]
+  id         String     @id @default(uuid())
+  firstname  String
+  lastname   String
+  image      String[]
+  location   String?
+  phone      String     @unique
+  password   String
+  email      String     @unique
+  lastOnline DateTime   @default(now())
+  region_id  Int?
+  region     Region?    @relation(fields: [region_id], references: [id], onDelete: SetNull)
+  status     UserStatus @default(INACTIVE)
+  role       Role       @default(USER)
+  Like       Like[]
+  Order      Order[]
+  View       View[]
+  Sessions   Sessions[]
+  Product    Product[]
+  Comment    Comment[]
 }
 
 model Sessions {
   id     String @id @default(uuid())
   ip     String
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete:Cascade)
-}
-
-model Region {
-  id   String @id @default(uuid())
-  name String
-  User User[]
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model View {
